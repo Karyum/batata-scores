@@ -25,6 +25,10 @@ function Main({ user: loggedInUser }) {
       : []
   );
 
+  const [potatoesLeft, setPotatoesLeft] = useState(users.filter(
+    ({ username }) => username === loggedInUser.user.login
+  )[0].potatoes)
+
   useEffect(() => {
     if (!users.length) {
       (async function getWebAheadUsers() {
@@ -127,6 +131,8 @@ function Main({ user: loggedInUser }) {
                   potatoes: currentLoggedInUser.potatoes - 1,
                   lastUsed: Date.now()
                 });
+
+                setPotatoesLeft(prevCount => prevCount - 1)
             } else {
               console.log('awkward');
             }
@@ -152,7 +158,7 @@ function Main({ user: loggedInUser }) {
       <>
         <span className="potato-header">Choose who is the potato</span>
         <div className="potatoes-wrapper">
-          {users.filter(({username}) => username !== loggedInUser.user.login    ).map(user => (
+          {users.filter(({username}) => username !== loggedInUser.user.login).map(user => (
             <div className="potato-human-container">
               <img
                 alt=""
@@ -163,7 +169,7 @@ function Main({ user: loggedInUser }) {
                 className="potato-human-avatar"
               />
               <span style={{ fontSize: '25px' }}>{user.username}</span>
-              {doesHeHavePotatoes > 0 ? (
+              {(doesHeHavePotatoes > 0 && potatoesLeft < 0)  ? (
                 <img
                   alt=""
                   src="/potato.png"
