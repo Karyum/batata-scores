@@ -12,7 +12,7 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 
-function Main({ user }) {
+function Main({ user: loggedInUser }) {
   const [users, setUsers] = useState(
     localStorage.getItem('users')
       ? JSON.parse(localStorage.getItem('users'))
@@ -45,9 +45,9 @@ function Main({ user }) {
                   querySnapshot.forEach(doc => usersData.push(doc.data()));
 
                   setUsers(usersData);
-                  localStorage.setItem('users', JSON.stringify(usersData));
+                //   localStorage.setItem('users', JSON.stringify(usersData));
                   setGitUsers(data);
-                  localStorage.setItem('gitUsers', JSON.stringify(data));
+                //   localStorage.setItem('gitUsers', JSON.stringify(data));
                 });
             }
 
@@ -72,18 +72,18 @@ function Main({ user }) {
 
                 if (Date.now() - user.lastUsed > millisecondsToDay) {
                   const potatoes = parseInt(
-                    Date.now() - user.lastUsed / millisecondsToDay
+                    (Date.now() - user.lastUsed) / millisecondsToDay
                   );
 
                   db.collection('potatoes')
-                    .doc(user.login)
+                    .doc(user.username)
                     .update({
                       potatoes
                     });
                 }
               })
               .catch(console.log);
-            // db.collection("potatoes").doc(user.login).set({
+            // db.collection("potatoes").doc(gitUser.login).set({
             //   username: gitUser.login,
             //   batataScore: 0,
             //   lastUsed: Date.now(),
@@ -99,6 +99,43 @@ function Main({ user }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const addPotato = bigBatata => {
+    db.collection('potatoes')
+      .doc(bigBatata)
+      .get()
+      .then(doc => {
+        const potatoData = doc.data();
+
+        db.collection('potatoes')
+          .doc(loggedInUser.user.login)
+          .get()
+          .then(secondDoc => {
+            console.log(potatoData);
+            const currentLoggedInUser = secondDoc.data();
+
+            if (currentLoggedInUser.potatoes > 0) {
+              db.collection('potatoes')
+                .doc(bigBatata)
+                .update({
+                  batataScore: potatoData.batataScore + 1,
+                  lastUsed: Date.now()
+                });
+
+              db.collection('potatoes')
+                .doc(loggedInUser.user.login)
+                .update({
+                  potatoes: currentLoggedInUser.potatoes - 1,
+                  lastUsed: Date.now()
+                });
+            } else {
+              console.log('awkward');
+            }
+          })
+          .catch(() => 1);
+      })
+      .catch(() => 1);
+  };
+
   const centerPage = {
     height: '100vh',
     width: '100vw',
@@ -107,23 +144,43 @@ function Main({ user }) {
     alignItems: 'center'
   };
 
-  if (user.isLoggedIn) {
-
+  if (loggedInUser.isLoggedIn && gitUsers.length && users.length) {
+    const doesHeHavePotatoes = users.filter(
+      ({ username }) => username === loggedInUser.user.login
+    )[0].potatoes;
     return (
-      <div className="potatoes-wrapper">
+      <>
         <span className="potato-header">Choose who is the potato</span>
-        {users.map(user => (
-          <div className="potato-human-container">
-            <img alt="" src={gitUsers.filter(({login}) => login === user.username)[0].avatar_url} className="potato-human-avatar" />
-            <span>{user.username}</span>
-            <img alt="" src="/potato.png" className="potato-human-avatar" />
-          </div>
-        ))}
-      </div>
+        <div className="potatoes-wrapper">
+          {users.filter(({username}) => username !== loggedInUser.user.login    ).map(user => (
+            <div className="potato-human-container">
+              <img
+                alt=""
+                src={
+                  gitUsers.filter(({ login }) => login === user.username)[0]
+                    .avatar_url
+                }
+                className="potato-human-avatar"
+              />
+              <span style={{ fontSize: '25px' }}>{user.username}</span>
+              {doesHeHavePotatoes > 0 ? (
+                <img
+                  alt=""
+                  src="/potato.png"
+                  className="potato-human-avatar"
+                  onClick={() => addPotato(user.username)}
+                />
+              ) : (
+                ''
+              )}
+            </div>
+          ))}
+        </div>
+      </>
     );
   }
 
-  if (!user.isLoggedIn) {
+  if (!loggedInUser.isLoggedIn) {
     return (
       <div style={centerPage}>
         <a
