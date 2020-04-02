@@ -25,9 +25,12 @@ function Main({ user: loggedInUser }) {
       : []
   );
 
-  const [potatoesLeft, setPotatoesLeft] = useState((users.length && loggedInUser.user) ? users.filter(
-    ({ username }) => username === loggedInUser.user.login
-  )[0].potatoes : 0)
+  const [potatoesLeft, setPotatoesLeft] = useState(
+    users.length && loggedInUser.user
+      ? users.filter(({ username }) => username === loggedInUser.user.login)[0]
+          .potatoes
+      : 0
+  );
 
   useEffect(() => {
     if (!users.length) {
@@ -49,9 +52,14 @@ function Main({ user: loggedInUser }) {
                   querySnapshot.forEach(doc => usersData.push(doc.data()));
 
                   setUsers(usersData);
-                //   localStorage.setItem('users', JSON.stringify(usersData));
+                  setPotatoesLeft(
+                    usersData.filter(
+                      ({ username }) => username === loggedInUser.user.login
+                    )[0].potatoes
+                  );
+                  //   localStorage.setItem('users', JSON.stringify(usersData));
                   setGitUsers(data);
-                //   localStorage.setItem('gitUsers', JSON.stringify(data));
+                  //   localStorage.setItem('gitUsers', JSON.stringify(data));
                 });
             }
 
@@ -132,7 +140,7 @@ function Main({ user: loggedInUser }) {
                   lastUsed: Date.now()
                 });
 
-                setPotatoesLeft(prevCount => prevCount - 1)
+              setPotatoesLeft(prevCount => prevCount - 1);
             } else {
               console.log('awkward');
             }
@@ -158,29 +166,31 @@ function Main({ user: loggedInUser }) {
       <>
         <span className="potato-header">Choose who is the potato</span>
         <div className="potatoes-wrapper">
-          {users.filter(({username}) => username !== loggedInUser.user.login).map(user => (
-            <div className="potato-human-container">
-              <img
-                alt=""
-                src={
-                  gitUsers.filter(({ login }) => login === user.username)[0]
-                    .avatar_url
-                }
-                className="potato-human-avatar"
-              />
-              <span style={{ fontSize: '25px' }}>{user.username}</span>
-              {(doesHeHavePotatoes > 0 && potatoesLeft < 0)  ? (
+          {users
+            .filter(({ username }) => username !== loggedInUser.user.login)
+            .map(user => (
+              <div className="potato-human-container">
                 <img
                   alt=""
-                  src="/potato.png"
+                  src={
+                    gitUsers.filter(({ login }) => login === user.username)[0]
+                      .avatar_url
+                  }
                   className="potato-human-avatar"
-                  onClick={() => addPotato(user.username)}
                 />
-              ) : (
-                ''
-              )}
-            </div>
-          ))}
+                <span style={{ fontSize: '25px' }}>{user.username}</span>
+                {doesHeHavePotatoes > 0 && potatoesLeft < 0 ? (
+                  <img
+                    alt=""
+                    src="/potato.png"
+                    className="potato-human-avatar"
+                    onClick={() => addPotato(user.username)}
+                  />
+                ) : (
+                  ''
+                )}
+              </div>
+            ))}
         </div>
       </>
     );
