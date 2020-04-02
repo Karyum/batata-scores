@@ -25,7 +25,7 @@ function Main({ user: loggedInUser }) {
       : []
   );
 
-  const [potatoesLeft, setPotatoesLeft] = useState(users.length ? users.filter(
+  const [potatoesLeft, setPotatoesLeft] = useState((users.length && loggedInUser.user) ? users.filter(
     ({ username }) => username === loggedInUser.user.login
   )[0].potatoes : 0)
 
