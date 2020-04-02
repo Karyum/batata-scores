@@ -179,7 +179,7 @@ function Main({ user: loggedInUser }) {
                   className="potato-human-avatar"
                 />
                 <span style={{ fontSize: '25px' }}>{user.username}</span>
-                {doesHeHavePotatoes > 0 && potatoesLeft < 0 ? (
+                {doesHeHavePotatoes > 0 && potatoesLeft > 0 ? (
                   <img
                     alt=""
                     src="/potato.png"
